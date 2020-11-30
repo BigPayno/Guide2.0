@@ -1,0 +1,30 @@
+@startuml
+skinparam backfroundColor #EEEBDC
+skinparam handwritten true
+
+skinparam sequence {
+    ArrowColor DeepSkyBlue
+    ActorBorderColor blue
+    LifeLineBorderColor blue
+    LifeLineBackgroundColor #A9DCDF
+
+    ParticipantBorderColor DeepSkyBlue
+    ParticipantBackgroundColor DodgerBlue
+    ParticipantFontName Aapex
+    ParticipantFontColor #A9DCDF
+
+    ActorBackgroundColor aqua
+    ActorFontColor DeepSkyBlue
+    ActorFontSize 17
+    ActorFontName Aapex
+}
+
+title mybatis-apis
+==Mybatis ResultMapping==
+alt ResultMapping(Configuration configuration, String property)
+    ResultMapping.Builder --> ResultMapping.Builder:初始化
+    ResultMapping.Builder --> Configuration:获取TypeHandlerRegistry,得到TypeHandler
+    ResultMapping.Builder --> ResultMapping:创建成功
+end
+====
+@enduml
