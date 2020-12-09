@@ -1,13 +1,21 @@
 package study.symbolTable;
 
+import com.google.common.collect.Lists;
+import study.symbolTable.AVLBalanceStrategy.Rotate;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
 
-    List<AVLBalanceStrategy> avlBalanceStrategies;
+    Set<Rotate> avlBalanceStrategies = EnumSet.allOf(Rotate.class);
     Node<K,V> root;
     int size = 0;
 
@@ -27,12 +35,15 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
             }
             if(left==null&&right==null){
                 depth = 0;
+                return;
             }
             if(left==null){
                 depth = right.depth+1;
+                return;
             }
             if(right==null){
                 depth = left.depth+1;
+                return;
             }
             depth = left.depth>right.depth?left.depth+1:right.depth+1;
         }
@@ -42,10 +53,10 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
                 return true;
             }
             if(left==null){
-                return right.depth == 1;
+                return right.depth <= 0;
             }
             if(right==null){
-                return left.depth == 1;
+                return left.depth <= 0;
             }
             return right.depth-left.depth<=1 && right.depth-left.depth>=-1;
         }
@@ -75,6 +86,14 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
                 this.left = child;
             }else{
                 this.right = child;
+            }
+        }
+
+        public void removeChild(Node<K,V> child){
+            if(this.k.compareTo(child.k)>0){
+                this.left = null;
+            }else{
+                this.right = null;
             }
         }
     }
@@ -124,6 +143,7 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
         }else{
             Node<K,V> parentNodeToInsert = queryChain.get(queryChain.size()-1);
             Node<K,V> insertNode = Node.child(parentNodeToInsert, key, val);
+            queryChain.add(insertNode);
             Integer unbalanceNodeIndex = null;
             Node<K,V> curNode = null;
             root.updateDepth();
@@ -131,9 +151,9 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
                 curNode = queryChain.get(i);
                 if(unbalanceNodeIndex==null&&!curNode.balance()){
                     unbalanceNodeIndex = i;
+                    break;
                 }
             }
-            queryChain.add(insertNode);
             balance(queryChain, unbalanceNodeIndex);
             size ++;
         }
@@ -184,5 +204,17 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
     @Override
     public Iterable<K> keys() {
         return null;
+    }
+
+    public void print(){
+        List<Node<K,V>> curNodes = Lists.newArrayList(root);
+        while(curNodes.size()!=0){
+            curNodes.forEach(curNode-> System.out.printf("%s[left:%s,right:%s]",curNode.k.toString(),curNode.left==null?" ":curNode.left.k.toString(),curNode.right==null?" ":curNode.right.k.toString()));
+            curNodes = curNodes.stream()
+                    .flatMap(curNode-> Stream.of(curNode.left,curNode.right).filter(Objects::nonNull))
+                    .collect(Collectors.toList());
+            System.out.println();
+        }
+        System.out.println("size="+size);
     }
 }
