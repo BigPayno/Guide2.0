@@ -55,4 +55,19 @@ public class AVLTreeTest {
         avlTree.print();
         System.out.println("balance="+avlTree.root.balance());
     }
+
+    @Test
+    public void remove(){
+        AVLTree<Integer,Integer> avlTree = new AVLTree<>();
+        avlTree.put(1,1);
+        avlTree.put(0,0);
+        avlTree.put(2,2);
+        avlTree.put(-1,-1);
+        avlTree.put(-2,-2);
+        avlTree.put(-3,-3);
+        avlTree.print();
+        System.out.println();
+        avlTree.delete(-1);
+        avlTree.print();
+    }
 }

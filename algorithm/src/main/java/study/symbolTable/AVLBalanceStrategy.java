@@ -33,7 +33,6 @@ public interface AVLBalanceStrategy{
                 node0.left = node1.right;
                 node1.left = node2;
                 node1.right = node0;
-                node1.updateDepth();
             }
         },
         RR{
@@ -60,7 +59,6 @@ public interface AVLBalanceStrategy{
                 node0.right = node1.left;
                 node1.left = node0;
                 node1.right = node2;
-                node1.updateDepth();
             }
         },
         LR{
@@ -89,7 +87,6 @@ public interface AVLBalanceStrategy{
                 node1.left = node2.right;
                 node2.left = node1;
                 node2.right = node0;
-                node2.updateDepth();
             }
         },
         RL{
@@ -119,7 +116,6 @@ public interface AVLBalanceStrategy{
                 node1.left = node2.right;
                 node2.left = node0;
                 node2.right = node1;
-                node2.updateDepth();
             }
         };
     }

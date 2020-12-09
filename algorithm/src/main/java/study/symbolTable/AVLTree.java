@@ -96,6 +96,22 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
                 this.right = null;
             }
         }
+
+        public Node<K,V> selectMax(int depth){
+            Node<K, V> curNode = this;
+            while(curNode.right!=null&&curNode.depth!=depth){
+                curNode = curNode.right;
+            }
+            return curNode;
+        }
+
+        public Node<K,V> selectMin(int depth){
+            Node<K, V> curNode = this;
+            while(curNode.left!=null&&curNode.depth!=depth){
+                curNode = curNode.left;
+            }
+            return curNode;
+        }
     }
 
     private Optional<Node<K,V>> get(K key,@Nullable List<Node<K,V>> queryChain){
@@ -154,12 +170,12 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
                     break;
                 }
             }
-            balance(queryChain, unbalanceNodeIndex);
+            balanceOnAdd(queryChain, unbalanceNodeIndex);
             size ++;
         }
     }
 
-    private void balance(List<Node<K,V>> queryChain, Integer unbalanceNodeIndex){
+    private void balanceOnAdd(List<Node<K,V>> queryChain, Integer unbalanceNodeIndex){
         if(unbalanceNodeIndex==null){
             return;
         }
@@ -169,21 +185,57 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
                 return;
             }
         }
+        root.updateDepth();
     }
 
     @Override
     public V selectMin() {
-        return null;
+        return root==null?null:root.selectMin(0).v;
     }
 
     @Override
     public V selectMax() {
-        return null;
+        return root==null?null:root.selectMax(0).v;
+    }
+
+    private void removeNode(List<Node<K,V>> queryChain, Node<K,V> node){
+        if(node.equals(root)){
+            root = null;
+            //  todo
+        }else if(node.left==null&&node.right==null){
+            queryChain.get(queryChain.size()-1).removeChild(node);
+        }else if (node.left!=null){
+            Node<K, V> maxNodeParentOnLeftTree = node.selectMax(1);
+            Node<K, V> maxNodeOnLeftTree = maxNodeParentOnLeftTree.right;
+            maxNodeParentOnLeftTree.removeChild(maxNodeOnLeftTree);
+            maxNodeOnLeftTree.left = node.left;
+            queryChain.get(queryChain.size()-2).removeChild(node);
+            queryChain.get(queryChain.size()-2).addChild(maxNodeOnLeftTree);
+        }else{
+            Node<K, V> minNodeParentOnRightTree = node.selectMin(1);
+            Node<K, V> minNodeOnRightTree = minNodeParentOnRightTree.left;
+            minNodeParentOnRightTree.removeChild(minNodeOnRightTree);
+            minNodeOnRightTree.right = node.right;
+            queryChain.get(queryChain.size()-2).removeChild(node);
+            queryChain.get(queryChain.size()-2).addChild(minNodeOnRightTree);
+            root.updateDepth();
+        }
+    }
+
+    private void balanceOnRemove(List<Node<K,V>> queryChain, Node<K,V> node){
+        //  todo
+        root.updateDepth();
     }
 
     @Override
     public void delete(K key) {
-
+        List<Node<K,V>> queryChain = new ArrayList<>();
+        Optional<Node<K, V>> targetNode = get(key, queryChain);
+        targetNode.ifPresent(node->{
+            removeNode(queryChain,node);
+            balanceOnRemove(queryChain,node);
+            size--;
+        });
     }
 
     @Override
@@ -198,7 +250,7 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
 
     @Override
     public int size() {
-        return 0;
+        return size;
     }
 
     @Override
@@ -209,7 +261,12 @@ public class AVLTree<K extends Comparable<K>,V> implements SortedSearchST<K,V>{
     public void print(){
         List<Node<K,V>> curNodes = Lists.newArrayList(root);
         while(curNodes.size()!=0){
-            curNodes.forEach(curNode-> System.out.printf("%s[left:%s,right:%s]",curNode.k.toString(),curNode.left==null?" ":curNode.left.k.toString(),curNode.right==null?" ":curNode.right.k.toString()));
+            curNodes.forEach(curNode-> System.out.printf("%s[left:%s,right:%s,depth:%s]",
+                    curNode.k.toString(),
+                    curNode.left==null?" ":curNode.left.k.toString(),
+                    curNode.right==null?" ":curNode.right.k.toString(),
+                    curNode.depth
+                    ));
             curNodes = curNodes.stream()
                     .flatMap(curNode-> Stream.of(curNode.left,curNode.right).filter(Objects::nonNull))
                     .collect(Collectors.toList());
